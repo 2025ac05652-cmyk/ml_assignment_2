@@ -182,6 +182,10 @@ class support.*
 Screenshot of the assignment running on BITS Virtual Lab is included in the
 submitted PDF (Section 3 of the submission).
 
+
+<img width="1728" height="918" alt="Screenshot 2026-08-11 at 9 06 54 PM" src="https://github.com/user-attachments/assets/f4568a5e-7d28-4a68-9bab-5eddbcbc66a4" />
+<img width="1726" height="921" alt="Screenshot 2026-08-11 at 9 06 22 PM" src="https://github.com/user-attachments/assets/59645cb8-5779-4766-b28f-74926c69cd29" />
+
 ---
 
 ## Author
