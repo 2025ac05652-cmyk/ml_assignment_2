@@ -81,9 +81,9 @@ All preprocessing is wrapped inside each model's `sklearn.Pipeline`, so the save
 
 ## c. GitHub Repository Link  *(1 mark)*
 
-<https://github.com/USERNAME/REPO>
+<[https://github.com/USERNAME/REPO](https://github.com/2025ac05652-cmyk/ml_assignment_2)>
 
-**Live Streamlit app:** <https://YOUR-APP.streamlit.app>
+**Live Streamlit app:** <[https://YOUR-APP.streamlit.app](https://mlassignment2-3xvhres5dmxmgpfmuqpsng.streamlit.app/)>
 
 ### Repository structure
 ```
@@ -127,15 +127,13 @@ streamlit run app.py
 
 ### Comparison Table — evaluation metrics on the held-out test set
 
-<Paste the markdown table printed by `python model/train_models.py`.>
-
 | ML Model Name | Accuracy | AUC | Precision | Recall | F1 | MCC |
 |---|---|---|---|---|---|---|
-| Logistic Regression | | | | | | |
-| Decision Tree | | | | | | |
-| kNN | | | | | | |
-| Naive Bayes | | | | | | |
-| Random Forest (Ensemble) | | | | | | |
+| Logistic Regression | 0.7694 | 0.8948 | 0.7555 | 0.7694 | 0.7560 | 0.6171 |
+| Decision Tree | 0.7251 | 0.8538 | 0.7137 | 0.7251 | 0.7137 | 0.5433 |
+| kNN | 0.6908 | 0.8156 | 0.6730 | 0.6908 | 0.6675 | 0.4817 |
+| Naive Bayes | 0.6582 | 0.8080 | 0.6371 | 0.6582 | 0.6432 | 0.4281 |
+| Random Forest (Ensemble) | **0.7722** | **0.9010** | **0.7597** | **0.7722** | **0.7575** | **0.6217** |
 
 *Precision / Recall / F1 are weighted-averaged across the three classes
 (Dropout, Enrolled, Graduate), which accounts for the class imbalance rather
@@ -148,16 +146,17 @@ class support.*
 
 | ML Model Name | Observation about model performance |
 |---|---|
-| Logistic Regression | <Fill in from your run. Prompt: with 36 features and a scaled numeric pipeline, does linear separation do reasonably well, or does accuracy trail the tree-based models? A gap here suggests some non-linear interaction among the curricular-unit / grade features.> |
-| Decision Tree | <Prompt: compare directly against Random Forest below — a noticeably lower F1/MCC on the single tree is evidence of overfitting to training splits, which the ensemble corrects for.> |
-| kNN | <Prompt: with 36 features, distance-based methods often degrade (curse of dimensionality). Say whether your run confirms or contradicts that, and note that all features were standardized before distance computation.> |
-| Naive Bayes | <Prompt: Naive Bayes assumes feature independence — this dataset has clearly correlated features (e.g. 1st/2nd semester grades, admission grade vs. previous-qualification grade), so expect it to be among the weaker performers despite often keeping a respectable AUC.> |
-| Random Forest (Ensemble) | <Prompt: usually the strongest by MCC. State the actual margin over the single Decision Tree from your table.> |
-| **Overall winner for your dataset?** | <Name the model using your MCC value, not accuracy — with the Enrolled class at only ~18% of the data, accuracy alone can look decent while badly under-serving the minority class. MCC is a fairer summary here.> |
+| Logistic Regression | Second-best model overall (MCC 0.6171), trailing Random Forest by only 0.0046 MCC despite being a simple linear model. This closeness suggests the 36 features carry a largely linear, monotonic relationship with dropout risk — the ensemble's extra capacity to model non-linear interactions bought very little on top of what a weighted linear combination of features already captures. |
+| Decision Tree | Clearly weaker than the Random Forest built from the same features (MCC 0.5433 vs 0.6217, a 0.078 gap — the largest tree-vs-ensemble gap in the table). A single tree overfits to specific splits in the training data and its predictions vary more across the training set than a forest of many trees averaged together; this is the classic bias-variance argument for ensembling, and this dataset demonstrates it directly. |
+| kNN | The weakest of the non-Naive-Bayes models (MCC 0.4817, Accuracy 0.6908). With 36 standardized features, Euclidean distance becomes a less meaningful similarity measure — the curse of dimensionality dilutes the signal from a few informative features (e.g. semester grades) among many less-informative ones, so "nearest" neighbors in 36-D space are not necessarily the most academically similar students. |
+| Naive Bayes | Lowest-scoring model on every metric (MCC 0.4281). This tracks with the model's feature-independence assumption, which this dataset clearly violates: 1st- and 2nd-semester curricular unit counts and grades are strongly correlated with each other and with admission/previous-qualification grades. Naive Bayes still keeps a respectable AUC (0.808) relative to its accuracy, meaning it ranks students by risk reasonably well even where its hard classifications are less accurate. |
+| Random Forest (Ensemble) | Best model on all six metrics, though only marginally ahead of Logistic Regression (MCC 0.6217 vs 0.6171). It clearly outperforms the single Decision Tree it's built from (+0.078 MCC), confirming that averaging many trees reduces the variance/overfitting the standalone tree suffered from. |
+| **Overall winner for your dataset?** | **Random Forest (Ensemble)**, by MCC (0.6217) rather than accuracy — with Enrolled at only ~18% of the data, accuracy can look reasonable while under-serving that minority class, so MCC is the fairer summary metric here. That said, Logistic Regression is a close second and is far cheaper to train and easier to interpret (coefficients map directly to feature effects), so it's a reasonable alternative if interpretability matters more than the last ~0.5 points of MCC. |
 
 ### Additional notes
 - The dataset is moderately imbalanced (Graduate 49.9% / Dropout 32.1% / Enrolled 17.9%), which is why MCC — rather than raw accuracy — is the more trustworthy headline metric in the table above.
-- <Look at your confusion matrix and report which pair of classes is most confused. Across published work on this dataset, **Enrolled** is consistently the hardest class to separate — it sits between Dropout and Graduate on most academic-performance features, since these are students still mid-course rather than at a final outcome. State whether your matrix shows the same pattern.>
+- The overall metric ordering (RF ≳ LogReg > Decision Tree > kNN > Naive Bayes) is consistent across every single metric column, not just MCC — a good sign that these results reflect genuine model quality differences rather than metric-specific artifacts.
+- The confusion matrix confirms it: **Enrolled is by far the hardest class**, with recall of only 0.372 (74/199 correctly identified) versus 0.741 for Dropout and 0.937 for Graduate. Of the 125 misclassified Enrolled students, 74 were predicted as Graduate and 51 as Dropout — Enrolled genuinely sits *between* the other two classes rather than being confused with just one of them, which matches the intuition that these are students still mid-course, showing academic-performance signals partway between an eventual dropout and an eventual graduate. Dropout shows the same but weaker pattern (65 of its 92 errors go to Graduate, only 27 to Enrolled), while Graduate is rarely misclassified at all (35 errors out of 552). This is also why macro-averaged F1 (0.696) sits noticeably below the weighted average (0.7575) in the classification report — the model is doing well on the two larger classes and dragging down only on the minority Enrolled class, and a macro average weights all three classes equally so it exposes that gap.
 
 ---
 
@@ -187,5 +186,5 @@ submitted PDF (Section 3 of the submission).
 
 ## Author
 
-<Name> — <BITS ID>
+<Tarun Gupta> — <2025ac05652>
 M.Tech (AIML/DSE), Machine Learning — Assignment 2
