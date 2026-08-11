@@ -81,7 +81,7 @@ All preprocessing is wrapped inside each model's `sklearn.Pipeline`, so the save
 
 ## c. GitHub Repository Link  *(1 mark)*
 
-<[https://github.com/USERNAME/REPO](https://github.com/2025ac05652-cmyk/ml_assignment_2)>
+<[Github Repo](https://github.com/2025ac05652-cmyk/ml_assignment_2)>
 
 **Live Streamlit app:** <[https://YOUR-APP.streamlit.app](https://mlassignment2-3xvhres5dmxmgpfmuqpsng.streamlit.app/)>
 
@@ -190,5 +190,5 @@ submitted PDF (Section 3 of the submission).
 
 ## Author
 
-<Tarun Gupta> — <2025ac05652>
+Tarun Gupta — 2025ac05652
 M.Tech (AIML/DSE), Machine Learning — Assignment 2
