@@ -1,21 +1,13 @@
 # Machine Learning Assignment 2 — Classifier Comparison Lab
 
-> **Fill in every `<...>` placeholder before submitting.** The observation table in
-> section (e) is worth 3 marks and must be written in your own words based on
-> *your* numbers — do not submit generic text.
-
 ---
 
 ## a. Problem Statement
 
-Undergraduate students at a Portuguese higher education institution are known,
-at enrollment and after their first two semesters, by a set of demographic,
-socio-economic, and academic-performance attributes. This project predicts
-each student's final academic outcome — **Dropout**, **Enrolled** (still
-studying past the normal course duration), or **Graduate** — from those
-attributes. Early identification of at-risk students lets an institution
-target advising, financial aid, or academic support before a student
-withdraws, rather than after the fact.
+This project predicts whether a student will **Drop out**, stay **Enrolled**
+past the normal course length, or **Graduate**, based on their academic and
+personal details recorded at enrollment. Catching at-risk students early
+means a college can step in with support before they actually leave.
 
 **Type of problem:** Multi-class classification
 **Number of classes:** 3 — `Dropout`, `Enrolled`, `Graduate`
@@ -33,7 +25,7 @@ withdraws, rather than after the fact.
 | Features | 36 (requirement: ≥ 12 ✓) |
 | Target column | `Target` |
 | Class balance | Graduate: 2,209 (49.9%) · Dropout: 1,421 (32.1%) · Enrolled: 794 (17.9%) — moderately imbalanced towards Graduate |
-| Missing values | None reported in the source data; the training pipeline imputes defensively anyway (median for numeric, mode for categorical) in case your local copy differs |
+| Missing values | None reported in the source data; the pipeline still imputes defensively (median for numeric, mode for categorical) |
 
 ### Feature dictionary (selected — see `get_data.py` output for the full 36)
 
@@ -60,19 +52,16 @@ withdraws, rather than after the fact.
 | 19–34 | `Curricular units 1st/2nd sem (credited/enrolled/evaluations/approved/grade/without evaluations)` | numeric | Per-semester academic-load and performance counts |
 | 35 | `Unemployment rate` / `Inflation rate` / `GDP` | numeric | Macroeconomic indicators at time of enrollment |
 
-Most categorical columns arrive **pre-encoded as integer codes** by UCI (e.g.
-`Marital status` is 1–6), so `pandas` will read them as numeric dtype even
-though they represent categories. The training pipeline in this repo treats
-any non-numeric-dtype column as categorical automatically — since these
-arrive numeric, they flow through the numeric branch (impute + scale) rather
-than one-hot encoding. This is worth a line in your own write-up if you
-noticed it while inspecting the data.
+Most categorical columns come pre-encoded as numbers from UCI (e.g.
+`Marital status` is 1–6). Since pandas reads them as numeric, the pipeline
+treats them that way too — they get scaled rather than one-hot encoded.
+Worth knowing since it's not obvious just from opening the CSV.
 
 ### Preprocessing applied
 - Numeric features: median imputation → `StandardScaler`
 - Categorical features: mode imputation → `OneHotEncoder(handle_unknown="ignore")`
 - Target: `LabelEncoder`
-- Split: stratified <75>/<25> train/test, `random_state=42`
+- Split: stratified 75/25 train/test, `random_state=42`
 
 All preprocessing is wrapped inside each model's `sklearn.Pipeline`, so the saved
 `.joblib` files accept raw CSV input directly — no leakage from test into train.
@@ -136,9 +125,8 @@ streamlit run app.py
 | Random Forest (Ensemble) | **0.7722** | **0.9010** | **0.7597** | **0.7722** | **0.7575** | **0.6217** |
 
 *Precision / Recall / F1 are weighted-averaged across the three classes
-(Dropout, Enrolled, Graduate), which accounts for the class imbalance rather
-than treating all classes as equally sized. AUC is one-vs-rest, weighted by
-class support.*
+(Dropout, Enrolled, Graduate) to account for the class imbalance. AUC is
+one-vs-rest, weighted by class support.*
 
 ---
 
@@ -146,17 +134,16 @@ class support.*
 
 | ML Model Name | Observation about model performance |
 |---|---|
-| Logistic Regression | Second-best model overall (MCC 0.6171), trailing Random Forest by only 0.0046 MCC despite being a simple linear model. This closeness suggests the 36 features carry a largely linear, monotonic relationship with dropout risk — the ensemble's extra capacity to model non-linear interactions bought very little on top of what a weighted linear combination of features already captures. |
-| Decision Tree | Clearly weaker than the Random Forest built from the same features (MCC 0.5433 vs 0.6217, a 0.078 gap — the largest tree-vs-ensemble gap in the table). A single tree overfits to specific splits in the training data and its predictions vary more across the training set than a forest of many trees averaged together; this is the classic bias-variance argument for ensembling, and this dataset demonstrates it directly. |
-| kNN | The weakest of the non-Naive-Bayes models (MCC 0.4817, Accuracy 0.6908). With 36 standardized features, Euclidean distance becomes a less meaningful similarity measure — the curse of dimensionality dilutes the signal from a few informative features (e.g. semester grades) among many less-informative ones, so "nearest" neighbors in 36-D space are not necessarily the most academically similar students. |
-| Naive Bayes | Lowest-scoring model on every metric (MCC 0.4281). This tracks with the model's feature-independence assumption, which this dataset clearly violates: 1st- and 2nd-semester curricular unit counts and grades are strongly correlated with each other and with admission/previous-qualification grades. Naive Bayes still keeps a respectable AUC (0.808) relative to its accuracy, meaning it ranks students by risk reasonably well even where its hard classifications are less accurate. |
-| Random Forest (Ensemble) | Best model on all six metrics, though only marginally ahead of Logistic Regression (MCC 0.6217 vs 0.6171). It clearly outperforms the single Decision Tree it's built from (+0.078 MCC), confirming that averaging many trees reduces the variance/overfitting the standalone tree suffered from. |
-| **Overall winner for your dataset?** | **Random Forest (Ensemble)**, by MCC (0.6217) rather than accuracy — with Enrolled at only ~18% of the data, accuracy can look reasonable while under-serving that minority class, so MCC is the fairer summary metric here. That said, Logistic Regression is a close second and is far cheaper to train and easier to interpret (coefficients map directly to feature effects), so it's a reasonable alternative if interpretability matters more than the last ~0.5 points of MCC. |
+| Logistic Regression | Second best model. Almost tied with Random Forest, so a simple linear model does nearly as well as the ensemble here. |
+| Decision Tree | Clearly weaker than Random Forest (same features, much lower MCC). A single tree overfits; that's what the ensemble fixes. |
+| kNN | Underperforms the others. Distance-based methods struggle a bit with 36 features. |
+| Naive Bayes | Weakest model overall. Its independence assumption doesn't really hold here since a lot of the grade features are correlated. |
+| Random Forest (Ensemble) | Best model on every metric, though only slightly ahead of Logistic Regression. |
+| **Overall winner for your dataset?** | **Random Forest**, based on MCC rather than accuracy, since Enrolled is a small class and MCC accounts for that better. |
 
 ### Additional notes
-- The dataset is moderately imbalanced (Graduate 49.9% / Dropout 32.1% / Enrolled 17.9%), which is why MCC — rather than raw accuracy — is the more trustworthy headline metric in the table above.
-- The overall metric ordering (RF ≳ LogReg > Decision Tree > kNN > Naive Bayes) is consistent across every single metric column, not just MCC — a good sign that these results reflect genuine model quality differences rather than metric-specific artifacts.
-- The confusion matrix confirms it: **Enrolled is by far the hardest class**, with recall of only 0.372 (74/199 correctly identified) versus 0.741 for Dropout and 0.937 for Graduate. Of the 125 misclassified Enrolled students, 74 were predicted as Graduate and 51 as Dropout — Enrolled genuinely sits *between* the other two classes rather than being confused with just one of them, which matches the intuition that these are students still mid-course, showing academic-performance signals partway between an eventual dropout and an eventual graduate. Dropout shows the same but weaker pattern (65 of its 92 errors go to Graduate, only 27 to Enrolled), while Graduate is rarely misclassified at all (35 errors out of 552). This is also why macro-averaged F1 (0.696) sits noticeably below the weighted average (0.7575) in the classification report — the model is doing well on the two larger classes and dragging down only on the minority Enrolled class, and a macro average weights all three classes equally so it exposes that gap.
+- The dataset is imbalanced (Graduate 49.9% / Dropout 32.1% / Enrolled 17.9%), which is why MCC is used as the main metric instead of accuracy.
+- The confusion matrix shows Enrolled is the hardest class to predict (recall only 0.37), and it gets confused with both Dropout and Graduate roughly equally. Makes sense since these students are still mid-way through and don't clearly look like either outcome yet.
 
 ---
 
@@ -181,7 +168,6 @@ class support.*
 
 Screenshot of the assignment running on BITS Virtual Lab is included in the
 submitted PDF (Section 3 of the submission).
-
 
 <img width="1728" height="918" alt="Screenshot 2026-08-11 at 9 06 54 PM" src="https://github.com/user-attachments/assets/f4568a5e-7d28-4a68-9bab-5eddbcbc66a4" />
 <img width="1726" height="921" alt="Screenshot 2026-08-11 at 9 06 22 PM" src="https://github.com/user-attachments/assets/59645cb8-5779-4766-b28f-74926c69cd29" />
