@@ -1,0 +1,15 @@
+# IMPORTANT: scikit-learn MUST match the version you trained with.
+# joblib files unpickled under a different sklearn version will crash on
+# Streamlit Cloud. Check yours with:  python -c "import sklearn; print(sklearn.__version__)"
+# then edit the pin below before pushing.
+
+streamlit==1.38.0
+scikit-learn==1.9.0
+pandas==2.2.3
+numpy==2.5.2
+matplotlib==3.9.2
+seaborn==0.13.2
+joblib==1.4.2
+tabulate==0.9.0
+
+
