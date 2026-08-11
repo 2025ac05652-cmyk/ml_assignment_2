@@ -83,7 +83,7 @@ All preprocessing is wrapped inside each model's `sklearn.Pipeline`, so the save
 
 [Github repo link](https://github.com/2025ac05652-cmyk/ml_assignment_2)
 
-**Live Streamlit app:** <[App link](https://mlassignment2-3xvhres5dmxmgpfmuqpsng.streamlit.app/)>
+**Live Streamlit app:** <[App link](https://mlassignment2-ap5k79dxoxnwccbgrskhjh.streamlit.app/)>
 
 ### Repository structure
 ```
